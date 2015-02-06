@@ -1,3 +1,6 @@
 [submodule "3rd/jemalloc"]
 	path = 3rd/jemalloc
 	url = https://github.com/jemalloc/jemalloc.git
+[submodule "lualib-src/lproto"]
+	path = lualib-src/lproto
+	url = git@github.com:hanxi/lproto.git

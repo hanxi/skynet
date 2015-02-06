@@ -1,7 +1,8 @@
 local skynet = require "skynet"
 local netpack = require "netpack"
 local socket = require "socket"
-local sproto = require "sproto"
+--local sproto = require "sproto"
+local sproto = require "lproto"
 
 local host
 local send_request
