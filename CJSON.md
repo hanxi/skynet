@@ -98,3 +98,9 @@ luaservice = "./service/?.lua;./test/?.lua;./examples/?.lua"
 {"b":[3,2,3,4],"a":1}
 ```
 
+
+## 其他
+
+- 代码分支： <https://github.com/hanxi/skynet/tree/cjson>
+- 修改记录： <https://github.com/hanxi/skynet/commit/cb39a70afb37d1b7b7b19fb5b22b8cda063d505c>
+
