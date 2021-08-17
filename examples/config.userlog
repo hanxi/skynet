@@ -1,8 +1,11 @@
 root = "./"
 thread = 8
-logger = "userlog"
+logger = "log"
 logservice = "snlua"
-logpath = "."
+logfile = "skynet.log"
+loglevel = 1
+logcut = true
+sighupfile = "./sighup"
 harbor = 0
 start = "main"	-- main script
 bootstrap = "snlua bootstrap"	-- The service for bootstrap
