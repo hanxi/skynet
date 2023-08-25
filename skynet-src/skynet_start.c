@@ -10,7 +10,8 @@
 #include "skynet_daemon.h"
 #include "skynet_harbor.h"
 
-#include <pthread.h>
+#include "threads.h"
+
 #include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
@@ -21,8 +22,8 @@
 struct monitor {
 	int count;
 	struct skynet_monitor ** m;
-	pthread_cond_t cond;
-	pthread_mutex_t mutex;
+	cnd_t cond;
+	mtx_t mutex;
 	int sleep;
 	int quit;
 };
@@ -45,8 +46,8 @@ handle_hup(int signal) {
 #define CHECK_ABORT if (skynet_context_total()==0) break;
 
 static void
-create_thread(pthread_t *thread, void *(*start_routine) (void *), void *arg) {
-	if (pthread_create(thread,NULL, start_routine, arg)) {
+create_thread(thrd_t *thread, int (*start_routine) (void *), void *arg) {
+	if (thrd_create(thread, start_routine, arg)) {
 		fprintf(stderr, "Create thread failed");
 		exit(1);
 	}
@@ -56,11 +57,11 @@ static void
 wakeup(struct monitor *m, int busy) {
 	if (m->sleep >= m->count - busy) {
 		// signal sleep worker, "spurious wakeup" is harmless
-		pthread_cond_signal(&m->cond);
+		cnd_signal(&m->cond);
 	}
 }
 
-static void *
+static int
 thread_socket(void *p) {
 	struct monitor * m = p;
 	skynet_initthread(THREAD_SOCKET);
@@ -74,7 +75,7 @@ thread_socket(void *p) {
 		}
 		wakeup(m,0);
 	}
-	return NULL;
+	return 0;
 }
 
 static void
@@ -84,13 +85,13 @@ free_monitor(struct monitor *m) {
 	for (i=0;i<n;i++) {
 		skynet_monitor_delete(m->m[i]);
 	}
-	pthread_mutex_destroy(&m->mutex);
-	pthread_cond_destroy(&m->cond);
+	mtx_destroy(&m->mutex);
+	cnd_destroy(&m->cond);
 	skynet_free(m->m);
 	skynet_free(m);
 }
 
-static void *
+static int
 thread_monitor(void *p) {
 	struct monitor * m = p;
 	int i;
@@ -107,7 +108,7 @@ thread_monitor(void *p) {
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 static void
@@ -125,7 +126,7 @@ signal_hup() {
 	}
 }
 
-static void *
+static int
 thread_timer(void *p) {
 	struct monitor * m = p;
 	skynet_initthread(THREAD_TIMER);
@@ -143,14 +144,14 @@ thread_timer(void *p) {
 	// wakeup socket thread
 	skynet_socket_exit();
 	// wakeup all worker thread
-	pthread_mutex_lock(&m->mutex);
+	mtx_lock(&m->mutex);
 	m->quit = 1;
-	pthread_cond_broadcast(&m->cond);
-	pthread_mutex_unlock(&m->mutex);
-	return NULL;
+	cnd_broadcast(&m->cond);
+	mtx_unlock(&m->mutex);
+	return 0;
 }
 
-static void *
+static int
 thread_worker(void *p) {
 	struct worker_parm *wp = p;
 	int id = wp->id;
@@ -162,26 +163,32 @@ thread_worker(void *p) {
 	while (!m->quit) {
 		q = skynet_context_message_dispatch(sm, q, weight);
 		if (q == NULL) {
-			if (pthread_mutex_lock(&m->mutex) == 0) {
+			if (mtx_lock(&m->mutex) == 0) {
 				++ m->sleep;
 				// "spurious wakeup" is harmless,
 				// because skynet_context_message_dispatch() can be call at any time.
 				if (!m->quit)
-					pthread_cond_wait(&m->cond, &m->mutex);
+					cnd_wait(&m->cond, &m->mutex);
 				-- m->sleep;
-				if (pthread_mutex_unlock(&m->mutex)) {
+				if (mtx_unlock(&m->mutex)) {
 					fprintf(stderr, "unlock mutex error");
 					exit(1);
 				}
 			}
 		}
 	}
-	return NULL;
+	return 0;
 }
 
 static void
 start(int thread) {
-	pthread_t pid[thread+3];
+
+#ifdef _MSC_VER
+	thrd_t* pid = (thrd_t*)skynet_malloc(((size_t)thread+3)*sizeof(*pid));
+	memset(pid, 0, ((size_t)thread + 3) * sizeof(*pid));
+#else
+	thrd_t pid[thread+3];
+#endif
 
 	struct monitor *m = skynet_malloc(sizeof(*m));
 	memset(m, 0, sizeof(*m));
@@ -193,11 +200,11 @@ start(int thread) {
 	for (i=0;i<thread;i++) {
 		m->m[i] = skynet_monitor_new();
 	}
-	if (pthread_mutex_init(&m->mutex, NULL)) {
+	if (mtx_init(&m->mutex, mtx_plain)) {
 		fprintf(stderr, "Init mutex error");
 		exit(1);
 	}
-	if (pthread_cond_init(&m->cond, NULL)) {
+	if (cnd_init(&m->cond)) {
 		fprintf(stderr, "Init cond error");
 		exit(1);
 	}
@@ -211,7 +218,14 @@ start(int thread) {
 		1, 1, 1, 1, 1, 1, 1, 1, 
 		2, 2, 2, 2, 2, 2, 2, 2, 
 		3, 3, 3, 3, 3, 3, 3, 3, };
+
+#ifdef _MSC_VER
+	struct worker_parm* wp = (struct worker_parm*)skynet_malloc(thread * sizeof(*wp));
+	memset(wp, 0, thread * sizeof(*wp));
+#else
 	struct worker_parm wp[thread];
+#endif
+
 	for (i=0;i<thread;i++) {
 		wp[i].m = m;
 		wp[i].id = i;
@@ -224,8 +238,14 @@ start(int thread) {
 	}
 
 	for (i=0;i<thread+3;i++) {
-		pthread_join(pid[i], NULL); 
+		thrd_join(pid[i], NULL); 
 	}
+
+#ifdef _MSC_VER
+	skynet_free(wp);
+	skynet_free(pid);
+#else
+#endif
 
 	free_monitor(m);
 }
@@ -233,8 +253,17 @@ start(int thread) {
 static void
 bootstrap(struct skynet_context * logger, const char * cmdline) {
 	int sz = strlen(cmdline);
+
+#ifdef _MSC_VER
+	char *name =(char*)skynet_malloc(sz+1);
+	char *args = (char*)skynet_malloc(sz+1);
+	memset(name, 0, sz + 1);
+	memset(args, 0, sz + 1);
+#else
 	char name[sz+1];
 	char args[sz+1];
+#endif
+
 	int arg_pos;
 	sscanf(cmdline, "%s", name);  
 	arg_pos = strlen(name);
@@ -246,7 +275,15 @@ bootstrap(struct skynet_context * logger, const char * cmdline) {
 	} else {
 		args[0] = '\0';
 	}
+	
 	struct skynet_context *ctx = skynet_context_new(name, args);
+
+#ifdef _MSC_VER
+	skynet_free(name);
+	skynet_free(args);
+#else
+#endif
+
 	if (ctx == NULL) {
 		skynet_error(NULL, "Bootstrap error : %s\n", cmdline);
 		skynet_context_dispatchall(logger);

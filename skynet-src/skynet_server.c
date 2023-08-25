@@ -1,5 +1,4 @@
 #include "skynet.h"
-
 #include "skynet_server.h"
 #include "skynet_module.h"
 #include "skynet_handle.h"
@@ -13,7 +12,7 @@
 #include "spinlock.h"
 #include "atomic.h"
 
-#include <pthread.h>
+#include "threads.h"
 
 #include <string.h>
 #include <assert.h>
@@ -64,7 +63,7 @@ struct skynet_node {
 	ATOM_INT total;
 	int init;
 	uint32_t monitor_exit;
-	pthread_key_t handle_key;
+	tss_t handle_key;
 	bool profile;	// default is on
 };
 
@@ -88,7 +87,7 @@ context_dec() {
 uint32_t 
 skynet_current_handle(void) {
 	if (G_NODE.init) {
-		void * handle = pthread_getspecific(G_NODE.handle_key);
+		void * handle = tss_get(G_NODE.handle_key);
 		return (uint32_t)(uintptr_t)handle;
 	} else {
 		uint32_t v = (uint32_t)(-THREAD_MAIN);
@@ -261,7 +260,7 @@ static void
 dispatch_message(struct skynet_context *ctx, struct skynet_message *msg) {
 	assert(ctx->init);
 	CHECKCALLING_BEGIN(ctx)
-	pthread_setspecific(G_NODE.handle_key, (void *)(uintptr_t)(ctx->handle));
+	tss_set(G_NODE.handle_key, (void *)(uintptr_t)(ctx->handle));
 	int type = msg->sz >> MESSAGE_TYPE_SHIFT;
 	size_t sz = msg->sz & MESSAGE_TYPE_MASK;
 	FILE *f = (FILE *)ATOM_LOAD(&ctx->logfile);
@@ -433,8 +432,14 @@ cmd_query(struct skynet_context * context, const char * param) {
 static const char *
 cmd_name(struct skynet_context * context, const char * param) {
 	int size = strlen(param);
+#ifdef _MSC_VER
+	assert(size <= 1024);
+	char name[1024+1];
+	char handle[1024+1];
+#else
 	char name[size+1];
 	char handle[size+1];
+#endif
 	sscanf(param,"%s %s",name,handle);
 	if (handle[0] != ':') {
 		return NULL;
@@ -483,7 +488,12 @@ cmd_kill(struct skynet_context * context, const char * param) {
 static const char *
 cmd_launch(struct skynet_context * context, const char * param) {
 	size_t sz = strlen(param);
+#ifdef _MSC_VER
+	assert(sz <= 1024);
+	char tmp[1024+1];
+#else
 	char tmp[sz+1];
+#endif
 	strcpy(tmp,param);
 	char * args = tmp;
 	char * mod = strsep(&args, " \t\r\n");
@@ -505,7 +515,12 @@ cmd_getenv(struct skynet_context * context, const char * param) {
 static const char *
 cmd_setenv(struct skynet_context * context, const char * param) {
 	size_t sz = strlen(param);
+#ifdef _MSC_VER
+	assert(sz <= 1024);
+	char key[1024+1];
+#else
 	char key[sz+1];
+#endif
 	int i;
 	for (i=0;param[i] != ' ' && param[i];i++) {
 		key[i] = param[i];
@@ -810,8 +825,8 @@ skynet_globalinit(void) {
 	ATOM_INIT(&G_NODE.total , 0);
 	G_NODE.monitor_exit = 0;
 	G_NODE.init = 1;
-	if (pthread_key_create(&G_NODE.handle_key, NULL)) {
-		fprintf(stderr, "pthread_key_create failed");
+	if (tss_create(&G_NODE.handle_key, NULL)) {
+		fprintf(stderr, "tss_create failed");
 		exit(1);
 	}
 	// set mainthread's key
@@ -820,13 +835,13 @@ skynet_globalinit(void) {
 
 void 
 skynet_globalexit(void) {
-	pthread_key_delete(G_NODE.handle_key);
+	tss_delete(G_NODE.handle_key);
 }
 
 void
 skynet_initthread(int m) {
 	uintptr_t v = (uint32_t)(-m);
-	pthread_setspecific(G_NODE.handle_key, (void *)v);
+	tss_set(G_NODE.handle_key, (void *)v);
 }
 
 void

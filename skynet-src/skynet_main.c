@@ -1,17 +1,18 @@
 #include "skynet.h"
-
 #include "skynet_imp.h"
 #include "skynet_env.h"
 #include "skynet_server.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <signal.h>
 #include <assert.h>
+#include <unistd.h>
 
 static int
 optint(const char *key, int opt) {
@@ -75,11 +76,16 @@ _init_env(lua_State *L) {
 }
 
 int sigign() {
+
+#ifdef _MSC_VER
+#else
 	struct sigaction sa;
 	sa.sa_handler = SIG_IGN;
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGPIPE, &sa, 0);
+#endif
+
 	return 0;
 }
 
