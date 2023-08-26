@@ -77,23 +77,23 @@ project "skynet"
 
 
 local function add_service(name)
-    project(name)
-        location "build/projects/%{prj.name}"
-        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
-        targetdir "build/bin/%{cfg.buildcfg}"
+    project("cservice" ..name)
+        location "build/projects/cservice/%{prj.name}"
+        objdir "build/obj/cservice/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/cservice/%{cfg.buildcfg}"
         kind "SharedLib"
         language "C"
 
         includedirs {
-            "../skynet-src/",
-            "../3rd/lua/",
-            "../windows/posix/",
+            "../../skynet-src/",
+            "../../3rd/lua/",
+            "../../windows/posix/",
         }
 
     files {
-        "../windows/vsdef/" .. name .. ".def",
-        "../windows/posix/**.c",
-        "../service-src/service_" .. name .. ".c",
+        "../../windows/vsdef/cservice/" .. name .. ".def",
+        "../../windows/posix/**.c",
+        "../../service-src/service_" .. name .. ".c",
     }
 
     links {"skynet",}
@@ -112,3 +112,7 @@ add_service("logger")
 add_service("harbor")
 add_service("gate")
 
+-- local function add_skynet_lua_module()
+-- end
+
+-- add_skynet_lua_module("skynet")
