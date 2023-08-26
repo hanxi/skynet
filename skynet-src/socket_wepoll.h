@@ -3,7 +3,7 @@
 
 #include "skynet.h"
 
-#pragma comment(lib, "ws2_32.lib")
+// #pragma comment(lib, "ws2_32.lib")
 
 static bool sp_invalid(poll_fd efd) { return efd == 0; }
 

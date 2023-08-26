@@ -244,7 +244,6 @@ start(int thread) {
 #ifdef _MSC_VER
 	skynet_free(wp);
 	skynet_free(pid);
-#else
 #endif
 
 	free_monitor(m);
@@ -281,7 +280,6 @@ bootstrap(struct skynet_context * logger, const char * cmdline) {
 #ifdef _MSC_VER
 	skynet_free(name);
 	skynet_free(args);
-#else
 #endif
 
 	if (ctx == NULL) {

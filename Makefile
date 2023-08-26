@@ -6,7 +6,6 @@ CSERVICE_PATH ?= cservice
 SKYNET_BUILD_PATH ?= .
 
 CFLAGS = -g -O2 -Wall -I$(LUA_INC) $(MYCFLAGS)
-# CFLAGS += -DUSE_PTHREAD_LOCK
 
 # lua
 

@@ -213,13 +213,6 @@ skynet_calloc(size_t nmemb,size_t size) {
 }
 
 void *
-skynet_memalign(size_t alignment, size_t size) {
-	void* ptr = je_memalign(alignment, size + PREFIX_SIZE);
-	if(!ptr) malloc_oom(size);
-	return fill_prefix(ptr);
-}
-
-void *
 skynet_aligned_alloc(size_t alignment, size_t size) {
 	void* ptr = je_aligned_alloc(alignment, size + (size_t)((PREFIX_SIZE + alignment -1) & ~(alignment-1)));
 	if(!ptr) malloc_oom(size);
@@ -239,6 +232,37 @@ skynet_posix_memalign(void **memptr, size_t alignment, size_t size) {
 // for skynet_lalloc use
 #define raw_realloc realloc
 #define raw_free free
+
+void * 
+skynet_malloc(size_t sz) {
+	return malloc(sz);
+}
+
+void * 
+skynet_calloc(size_t nmemb,size_t size) {
+	return calloc(nmemb, size);
+}
+
+void * 
+skynet_realloc(void *ptr, size_t size) {
+	return realloc(ptr, size);
+}
+
+void skynet_free(void *ptr) {
+	free(ptr);
+}
+
+#ifndef _MSC_VER
+	void * 
+	skynet_aligned_alloc(size_t alignment, size_t size) {
+		return aligned_alloc(alignment, size);
+	}
+
+	int 
+	skynet_posix_memalign(void **memptr, size_t alignment, size_t size) {
+		return posix_memalign(memptr, alignment, size);
+	}
+#endif
 
 void
 memory_info_dump(const char* opts) {

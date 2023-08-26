@@ -1,0 +1,4 @@
+EXPORTS
+	logger_create
+	logger_release
+	logger_init
