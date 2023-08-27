@@ -30,7 +30,10 @@ project "lua"
     kind "StaticLib"
     language "C"
 
-    includedirs {"../3rd/lua", "../skynet-src"}
+    includedirs {
+        "../3rd/lua",
+        "../skynet-src",
+    }
 
     files {"../3rd/lua/onelua.c"}
 
@@ -39,13 +42,14 @@ project "lua"
     filter { "system:windows" }
         disablewarnings { "4244","4018","4996",}
 
-project "skynet"
+
+local function add_skynet(kindType, name)
+    project(name)
     location "build/projects/%{prj.name}"
     objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
     targetdir "build/bin/%{cfg.buildcfg}"
 
-    -- kind "ConsoleApp"
-    kind "StaticLib"
+    kind(kindType)
 
     language "C"
 
@@ -74,13 +78,15 @@ project "skynet"
         targetsuffix "-d"
     filter{"configurations:*"}
         postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+end
 
+add_skynet("StaticLib", "skynet")
 
 local function add_service(name)
-    project("cservice" ..name)
-        location "build/projects/cservice/%{prj.name}"
-        objdir "build/obj/cservice/%{prj.name}/%{cfg.buildcfg}"
-        targetdir "build/bin/cservice/%{cfg.buildcfg}"
+    project("cservice/" .. name)
+        location "build/projects/%{prj.name}"
+        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{prj}/%{cfg.buildcfg}"
         kind "SharedLib"
         language "C"
 
@@ -112,7 +118,4 @@ add_service("logger")
 add_service("harbor")
 add_service("gate")
 
--- local function add_skynet_lua_module()
--- end
-
--- add_skynet_lua_module("skynet")
+add_skynet("ConsoleApp", "skynet")
