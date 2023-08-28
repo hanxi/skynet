@@ -16,3 +16,7 @@ build
 *.sln
 *.exe
 *.dll
+*.pdb
+*.lib
+*.exp
+vs/output

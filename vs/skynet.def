@@ -2,12 +2,14 @@ EXPORTS
 	
 	malloc_used_memory
 	malloc_memory_block
-	malloc_current_memory
 	memory_info_dump
 	mallctl_int64
 	mallctl_opt
+	mallctl_bool
+	mallctl_cmd
 	dump_c_mem
 	dump_mem_lua
+	malloc_current_memory
 
 	socket_server_create
 	socket_server_release
@@ -47,6 +49,7 @@ EXPORTS
 	skynet_socket_bind
 	skynet_socket_close
 	skynet_socket_start
+	skynet_socket_pause
 	skynet_socket_nodelay
 	skynet_socket_udp
 	skynet_socket_udp_connect

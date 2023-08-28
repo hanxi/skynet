@@ -2,8 +2,9 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
-// #define _WINSOCK_DEPRECATED_NO_WARNINGS
-// #include <WinSock2.h>
+
+//#define _WINSOCK_DEPRECATED_NO_WARNINGS
+//#include <WinSock2.h>
 
 #define random rand
 #define srandom srand
