@@ -1,0 +1,22 @@
+EXPORTS
+	dlopen
+	dlerror
+	dlsym
+
+	getpid
+	kill
+	gethostname
+	usleep
+	sleep
+	clock_gettime
+	flock
+	sigaction
+	sigfillset
+	pipe
+	daemon
+	strsep
+	write
+	read
+	close
+
+

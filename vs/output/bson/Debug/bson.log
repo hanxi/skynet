@@ -1,0 +1,19 @@
+﻿  lua-bson.c
+C:\Users\xiaojin\skynet\skynet-src\msvc-stdatomic.h(228,12): warning C4013: “_InterlockedAnd64”未定义；假设外部返回 int
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(219,14): warning C4018: “<=”: 有符号/无符号不匹配
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(300,20): warning C4244: “函数”: 从“int64_t”转换到“int32_t”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(439,10): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(525,18): warning C4018: “<=”: 有符号/无符号不匹配
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(549,28): warning C4244: “函数”: 从“lua_Unsigned”转换到“size_t”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(540,16): warning C4244: “初始化”: 从“lua_Integer”转换到“size_t”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(578,14): warning C4244: “初始化”: 从“lua_Unsigned”转换到“size_t”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(586,14): warning C4244: “初始化”: 从“lua_Unsigned”转换到“size_t”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(665,22): warning C4244: “初始化”: 从“int64_t”转换到“uint32_t”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(874,11): warning C4244: “初始化”: 从“lua_Integer”转换到“int”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(895,15): warning C4244: “初始化”: 从“lua_Integer”转换到“int32_t”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(1016,10): warning C4244: “初始化”: 从“lua_Integer”转换到“int”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(1042,10): warning C4244: “初始化”: 从“lua_Integer”转换到“int”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(1274,35): warning C4244: “初始化”: 从“time_t”转换到“unsigned long”，可能丢失数据
+C:\Users\xiaojin\skynet\lualib-src\lua-bson.c(1330,24): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+    正在创建库 C:\Users\xiaojin\skynet\vs\..\luaclib\bson.lib 和对象 C:\Users\xiaojin\skynet\vs\..\luaclib\bson.exp
+  bson.vcxproj -> C:\Users\xiaojin\skynet\luaclib\bson.so
