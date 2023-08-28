@@ -45,72 +45,73 @@ project "lua"
 
 local function add_skynet(kindType, name)
     project(name)
-    location "build/projects/%{prj.name}"
-    objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
-    targetdir "build/bin/%{cfg.buildcfg}"
-
-    kind(kindType)
-
-    language "C"
-
-    includedirs {
-                "../windows/vsdef/skynet.def",
-                "../skynet-src/",
-                "../3rd/lua/",
-                "../windows/posix/",
-                "../windows/wepoll",
-            }
-
-    files {
-        "../skynet-src/**.c",
-        "../windows/posix/**.c",
-        "../windows/wepoll/**.c",
-    }
-
-    links{ "lua", "ws2_32.lib"}
-
-    defines {"NOUSE_JEMALLOC", "_CONSOLE", "_LIB"}
-
-    linkoptions { '/STACK:"8388608"' }
-    disablewarnings { "4244","4018","4996",}
-
-    filter "configurations:Debug"
-        targetsuffix "-d"
-    filter{"configurations:*"}
-        postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
-end
-
-add_skynet("StaticLib", "skynet")
-
-local function add_service(name)
-    project("cservice/" .. name)
         location "build/projects/%{prj.name}"
         objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
-        targetdir "build/bin/%{prj}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{cfg.buildcfg}"
+
+        kind(kindType)
+
+        language "C"
+
+        includedirs {
+                    "../windows/vsdef/skynet.def",
+                    "../skynet-src/",
+                    "../3rd/lua/",
+                    "../windows/posix/",
+                    "../windows/wepoll",
+                }
+
+        files {
+            "../skynet-src/**.c",
+            "../windows/posix/**.c",
+            "../windows/wepoll/**.c",
+        }
+
+        links{ "lua", "ws2_32.lib"}
+
+        defines {"NOUSE_JEMALLOC", "_CONSOLE", "_LIB"}
+
+        linkoptions { '/STACK:"8388608"' }
+        disablewarnings { "4244","4018","4996",}
+
+        filter "configurations:Debug"
+            targetsuffix "-d"
+        filter{"configurations:*"}
+            postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+end
+
+add_skynet("StaticLib", "skynetlib")
+add_skynet("ConsoleApp", "skynet")
+
+local function add_service(name)
+    project(name)
+        location "build/projects/%{prj.name}"
+        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{cfg.buildcfg}/cservice"
+
         kind "SharedLib"
         language "C"
 
         includedirs {
-            "../../skynet-src/",
-            "../../3rd/lua/",
-            "../../windows/posix/",
+            "../skynet-src/",
+            "../3rd/lua/",
+            "../windows/posix/",
         }
 
-    files {
-        "../../windows/vsdef/cservice/" .. name .. ".def",
-        "../../windows/posix/**.c",
-        "../../service-src/service_" .. name .. ".c",
-    }
+        files {
+            "../windows/vsdef/cservice/" .. name .. ".def",
+            "../windows/posix/**.c",
+            "../service-src/service_" .. name .. ".c",
+        }
 
-    links {"skynet",}
+        links {"skynetlib",}
+        linkoptions { '/STACK:"8388608"' }
+        disablewarnings { "4244","4018","4996",}
 
-    linkoptions { '/STACK:"8388608"' }
-    disablewarnings { "4244","4018","4996",}
-
-    filter "configurations:Debug"
-        targetsuffix "-d"
-    filter{"configurations:*"}
-        postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+        filter "configurations:Debug"
+            targetsuffix "-d"
+        filter{"configurations:*"}
+            postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
 end
 
 add_service("snlua")
@@ -118,4 +119,50 @@ add_service("logger")
 add_service("harbor")
 add_service("gate")
 
-add_skynet("ConsoleApp", "skynet")
+-- local function add_skynet_lua(name)
+--     project(name)
+--         location "build/projects/%{prj.name}"
+--         objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+--         targetdir "build/bin/%{cfg.buildcfg}/luaclib"
+
+--         kind "SharedLib"
+--         language "C"
+
+--         includedirs {
+--             "../skynet-src/",
+--             "../3rd/lua/",
+--             "../3rd/lualib-src/",
+--             "../windows/posix/",
+--         }
+
+--         files {
+--             "../windows/vsdef/luaclib/" .. name .. ".def",
+                -- "../windows/posix/**.c",
+--             "lua-skynet.c",
+--             "lua-seri.c",
+--             "lua-socket.c",
+--             "lua-mongo.c",
+--             "lua-netpack.c",
+--             "lua-memory.c",
+--             "lua-multicast.c",
+--             "lua-cluster.c",
+--             "lua-crypt.c",
+--             "lsha1.c",
+--             "lua-sharedata.c",
+--             "lua-stm.c",
+--             "lua-debugchannel.c",
+--             "lua-datasheet.c",
+--             "lua-sharetable.c",
+--         }
+
+--         links {"skynetlib",}
+--         linkoptions { '/STACK:"8388608"' }
+--         disablewarnings { "4244","4018","4996",}
+
+--         filter "configurations:Debug"
+--             targetsuffix "-d"
+--         filter{"configurations:*"}
+--             postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+-- end
+
+-- add_skynet_lua("skynet")

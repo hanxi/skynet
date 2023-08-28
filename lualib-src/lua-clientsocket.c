@@ -8,7 +8,6 @@
 #include <lauxlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <pthread.h>
 #include <stdlib.h>
 
 #include <netinet/in.h>
@@ -18,6 +17,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+
+#include "threads.h"
 
 #define CACHE_SIZE 0x1000	
 
@@ -131,13 +132,13 @@ lusleep(lua_State *L) {
 #define QUEUE_SIZE 1024
 
 struct queue {
-	pthread_mutex_t lock;
+	mtx_t lock;
 	int head;
 	int tail;
 	char * queue[QUEUE_SIZE];
 };
 
-static void *
+static int
 readline_stdin(void * arg) {
 	struct queue * q = arg;
 	char tmp[1024];
@@ -152,7 +153,7 @@ readline_stdin(void * arg) {
 		memcpy(str, tmp, n);
 		str[n] = 0;
 
-		pthread_mutex_lock(&q->lock);
+		mtx_lock(&q->lock);
 		q->queue[q->tail] = str;
 
 		if (++q->tail >= QUEUE_SIZE) {
@@ -162,24 +163,24 @@ readline_stdin(void * arg) {
 			// queue overflow
 			exit(1);
 		}
-		pthread_mutex_unlock(&q->lock);
+		mtx_unlock(&q->lock);
 	}
-	return NULL;
+	return 0;
 }
 
 static int
 lreadstdin(lua_State *L) {
 	struct queue *q = lua_touserdata(L, lua_upvalueindex(1));
-	pthread_mutex_lock(&q->lock);
+	mtx_lock(&q->lock);
 	if (q->head == q->tail) {
-		pthread_mutex_unlock(&q->lock);
+		mtx_unlock(&q->lock);
 		return 0;
 	}
 	char * str = q->queue[q->head];
 	if (++q->head >= QUEUE_SIZE) {
 		q->head = 0;
 	}
-	pthread_mutex_unlock(&q->lock);
+	mtx_unlock(&q->lock);
 	lua_pushstring(L, str);
 	free(str);
 	return 1;
@@ -235,12 +236,12 @@ luaopen_client_socket(lua_State *L) {
 
 	struct queue * q = lua_newuserdata(L, sizeof(*q));
 	memset(q, 0, sizeof(*q));
-	pthread_mutex_init(&q->lock, NULL);
+	mtx_init(&q->lock, mtx_plain);
 	lua_pushcclosure(L, lreadstdin, 1);
 	lua_setfield(L, -2, "readstdin");
 
-	pthread_t pid ;
-	pthread_create(&pid, NULL, readline_stdin, q);
+	thrd_t pid ;
+	thrd_create(&pid, readline_stdin, q);
 
 	return 1;
 }
