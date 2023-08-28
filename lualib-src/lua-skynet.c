@@ -14,6 +14,7 @@
 #include <inttypes.h>
 
 #include <time.h>
+#include <unistd.h>
 
 #if defined(__APPLE__)
 #include <sys/time.h>

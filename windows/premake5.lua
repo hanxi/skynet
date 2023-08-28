@@ -119,50 +119,50 @@ add_service("logger")
 add_service("harbor")
 add_service("gate")
 
--- local function add_skynet_lua(name)
---     project(name)
---         location "build/projects/%{prj.name}"
---         objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
---         targetdir "build/bin/%{cfg.buildcfg}/luaclib"
+local function add_skynet_lua(name)
+    project(name)
+        location "build/projects/%{prj.name}"
+        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{cfg.buildcfg}/luaclib"
 
---         kind "SharedLib"
---         language "C"
+        kind "SharedLib"
+        language "C"
 
---         includedirs {
---             "../skynet-src/",
---             "../3rd/lua/",
---             "../3rd/lualib-src/",
---             "../windows/posix/",
---         }
+        includedirs {
+            "../skynet-src/",
+            "../3rd/lua/",
+            "../lualib-src/",
+            "../windows/posix/",
+        }
 
---         files {
---             "../windows/vsdef/luaclib/" .. name .. ".def",
-                -- "../windows/posix/**.c",
---             "lua-skynet.c",
---             "lua-seri.c",
---             "lua-socket.c",
---             "lua-mongo.c",
---             "lua-netpack.c",
---             "lua-memory.c",
---             "lua-multicast.c",
---             "lua-cluster.c",
---             "lua-crypt.c",
---             "lsha1.c",
---             "lua-sharedata.c",
---             "lua-stm.c",
---             "lua-debugchannel.c",
---             "lua-datasheet.c",
---             "lua-sharetable.c",
---         }
+        files {
+            "../windows/vsdef/luaclib/skynet.def",
+            "../windows/posix/**.c",
+            "../lualib-src/lua-skynet.c",
+            "../lualib-src/lua-seri.c",
+            "../lualib-src/lua-socket.c",
+            "../lualib-src/lua-mongo.c",
+            "../lualib-src/lua-netpack.c",
+            "../lualib-src/lua-memory.c",
+            "../lualib-src/lua-multicast.c",
+            "../lualib-src/lua-cluster.c",
+            "../lualib-src/lua-crypt.c",
+            "../lualib-src/lsha1.c",
+            "../lualib-src/lua-sharedata.c",
+            "../lualib-src/lua-stm.c",
+            "../lualib-src/lua-debugchannel.c",
+            "../lualib-src/lua-datasheet.c",
+            "../lualib-src/lua-sharetable.c",
+        }
 
---         links {"skynetlib",}
---         linkoptions { '/STACK:"8388608"' }
---         disablewarnings { "4244","4018","4996",}
+        links {"skynetlib",}
+        linkoptions { '/STACK:"8388608"' }
+        disablewarnings { "4244","4018","4996",}
 
---         filter "configurations:Debug"
---             targetsuffix "-d"
---         filter{"configurations:*"}
---             postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
--- end
+        filter "configurations:Debug"
+            targetsuffix "-d"
+        filter{"configurations:*"}
+            postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+end
 
--- add_skynet_lua("skynet")
+add_skynet_lua("skynetdll")
