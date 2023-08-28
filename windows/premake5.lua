@@ -119,7 +119,7 @@ add_service("logger")
 add_service("harbor")
 add_service("gate")
 
-local function add_skynet_lua(name)
+local function add_skynet_dll(name)
     project(name)
         location "build/projects/%{prj.name}"
         objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
@@ -165,4 +165,136 @@ local function add_skynet_lua(name)
             postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
 end
 
-add_skynet_lua("skynetdll")
+add_skynet_dll("skynetdll")
+
+local function add_client()
+    project("client")
+        location "build/projects/%{prj.name}"
+        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{cfg.buildcfg}/luaclib"
+
+        kind "SharedLib"
+        language "C"
+
+        includedirs {
+            "../skynet-src/",
+            "../3rd/lua/",
+            "../lualib-src/",
+            "../windows/posix/",
+        }
+
+        files {
+            "../windows/vsdef/luaclib/client.def",
+            "../lualib-src/lua-crypt.c",
+            "../lualib-src/lsha1.c",
+            "../lualib-src/lua-clientsocket.c",
+        }
+
+        links {"skynetlib",}
+        linkoptions { '/STACK:"8388608"' }
+        disablewarnings { "4244","4018","4996",}
+
+        filter "configurations:Debug"
+            targetsuffix "-d"
+        filter{"configurations:*"}
+            postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+end
+
+add_client()
+
+local function add_bson()
+    project("bson")
+        location "build/projects/%{prj.name}"
+        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{cfg.buildcfg}/luaclib"
+
+        kind "SharedLib"
+        language "C"
+
+        includedirs {
+            "../skynet-src/",
+            "../3rd/lua/",
+            "../windows/posix/",
+        }
+
+        files {
+            "../windows/vsdef/luaclib/bson.def",
+            "../windows/posix/**.c",
+            "../lualib-src/lua-bson.c",
+        }
+
+        links {"skynetlib",}
+        linkoptions { '/STACK:"8388608"' }
+        disablewarnings { "4244","4018","4996",}
+
+        filter "configurations:Debug"
+            targetsuffix "-d"
+        filter{"configurations:*"}
+            postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+end
+add_bson()
+
+local function add_sproto()
+    project("sproto")
+        location "build/projects/%{prj.name}"
+        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{cfg.buildcfg}/luaclib"
+
+        kind "SharedLib"
+        language "C"
+
+        includedirs {
+            "../skynet-src/",
+            "../3rd/lua/",
+            "../lualib-src/sproto/",
+        }
+
+        files {
+            "../windows/vsdef/luaclib/sproto.def",
+            "../lualib-src/sproto/**.c",
+        }
+
+        links {"skynetlib",}
+        linkoptions { '/STACK:"8388608"' }
+        disablewarnings { "4244","4018","4996",}
+
+        filter "configurations:Debug"
+            targetsuffix "-d"
+        filter{"configurations:*"}
+            postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+end
+add_sproto()
+
+
+local function add_3rd_lua_module(name, dir)
+    dir = dir or name
+    project(name)
+        location "build/projects/%{prj.name}"
+        objdir "build/obj/%{prj.name}/%{cfg.buildcfg}"
+        targetdir "build/bin/%{cfg.buildcfg}/luaclib"
+
+        kind "SharedLib"
+        language "C"
+
+        includedirs {
+            "../skynet-src/",
+            "../3rd/lua/",
+            "../3rd/" .. dir .. "/",
+        }
+
+        files {
+            "../windows/vsdef/luaclib/" .. name .. ".def",
+            "../3rd/" .. dir .. "/**.c"
+        }
+
+        links {"skynetlib",}
+        linkoptions { '/STACK:"8388608"' }
+        disablewarnings { "4244","4018","4996",}
+
+        filter "configurations:Debug"
+            targetsuffix "-d"
+        filter{"configurations:*"}
+            postbuildcommands{"{COPY} %{cfg.buildtarget.abspath} %{wks.location}"}
+end
+add_3rd_lua_module("lpeg")
+add_3rd_lua_module("md5", "lua-md5")
