@@ -56,13 +56,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>..\output\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)..\..\luaclib\</OutDir>
+    <OutDir>$(SolutionDir)..\luaclib\</OutDir>
     <TargetExt>.so</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>..\output\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)..\..\luaclib\</OutDir>
+    <OutDir>$(SolutionDir)..\luaclib\</OutDir>
     <TargetExt>.so</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
