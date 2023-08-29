@@ -5,8 +5,11 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
-
 #include "skynet.h"
+
+#ifdef _MSC_VER
+	#include <WinSock2.h>
+#endif
 
 /*
 	uint32_t/string addr 

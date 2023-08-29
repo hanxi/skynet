@@ -11,11 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\service-src\service_gate.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\service-src\databuffer.h" />
-    <ClInclude Include="..\..\..\service-src\hashid.h" />
+    <None Include="gate.def" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\3rd\posix.vcxproj">
@@ -26,12 +22,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="gate.def" />
+    <ClInclude Include="..\..\service-src\databuffer.h" />
+    <ClInclude Include="..\..\service-src\hashid.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\service-src\service_gate.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4021309D-9DCA-4A1F-973D-90D37EE8E4DC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>lua53</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -60,7 +61,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>..\output\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)..\..\cservice\</OutDir>
+    <OutDir>$(SolutionDir)..\cservice\</OutDir>
     <TargetExt>.so</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -76,12 +77,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;LUA_BUILD_AS_DLL;LUA_LIB;NOUSE_JEMALLOC;_DEBUG;_WINDOWS;_USRDLL;LUA53_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\3rd\lua;..\..\..\skynet-src;..\posix;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\3rd\lua;..\..\skynet-src;..\..\3rd\posix;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir);$(SolutionDir)..\..\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir);$(SolutionDir)..\</AdditionalLibraryDirectories>
       <AdditionalDependencies>skynet.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>$(ProjectDir)$(ProjectName).def</ModuleDefinitionFile>
     </Link>

@@ -12,6 +12,10 @@
 #include <stdbool.h>
 #include "atomic.h"
 
+#ifdef _MSC_VER
+	#include <WinSock2.h>
+#endif
+
 #define DEFAULT_CAP 64
 #define MAX_NUMBER 1024
 // avoid circular reference while encodeing

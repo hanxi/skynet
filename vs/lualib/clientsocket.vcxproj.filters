@@ -6,13 +6,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\lualib-src\lua-clientsocket.c">
-      <Filter>Source files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="clientsocket.def">
       <Filter>Source files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lualib-src\lua-clientsocket.c" />
   </ItemGroup>
 </Project>

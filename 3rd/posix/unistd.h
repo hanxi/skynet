@@ -3,16 +3,13 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-//#define _WINSOCK_DEPRECATED_NO_WARNINGS
-//#include <WinSock2.h>
-
 #define random rand
 #define srandom srand
 #define snprintf _snprintf
 
 #define pid_t int
 
-pid_t getpid();
+// pid_t getpid();
 int kill(pid_t pid, int exit_code);
 
 void usleep(size_t us);

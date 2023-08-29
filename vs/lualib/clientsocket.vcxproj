@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\lualib-src\lua-clientsocket.c" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="clientsocket.def" />
   </ItemGroup>
   <ItemGroup>
@@ -23,9 +20,9 @@
     <ProjectReference Include="..\3rd\posix.vcxproj">
       <Project>{44f52237-ae31-499f-a74c-4e02b0fad898}</Project>
     </ProjectReference>
-    <ProjectReference Include="skynet.vcxproj">
-      <Project>{54ac9c4e-1946-4675-a431-5fbaebfbf34f}</Project>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lualib-src\lua-clientsocket.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{990A33D8-F729-4DC7-849D-3AE721DBF6A8}</ProjectGuid>
@@ -75,13 +72,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;LUA_BUILD_AS_DLL;_DEBUG;_WINDOWS;_USRDLL;LUA53_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\3rd\lua;..\..\..\skynet-src;..\posix;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\3rd\lua;..\..\skynet-src;..\..\3rd\posix;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir);$(SolutionDir)..\..\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;pthreadVCE2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir);$(SolutionDir)..\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;posix.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>$(ProjectDir)$(ProjectName).def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>

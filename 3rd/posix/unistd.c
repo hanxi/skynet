@@ -14,7 +14,7 @@ static LONGLONG get_cpu_freq() {
     return freq.QuadPart;
 }
 
-pid_t getpid() { return GetCurrentProcess(); }
+// pid_t getpid() { return GetCurrentProcess(); }
 
 int kill(pid_t pid, int exit_code) { return TerminateProcess(pid, exit_code); }
 
