@@ -157,7 +157,8 @@ main(int argc, char *argv[]) {
 	}
 	_init_env(L);
 
-	config.thread =  optint("thread",8);
+	config.thread = optint("thread",8);
+	config.exlusive = optint("exlusive",0);
 	config.module_path = optstring("cpath","./cservice/?.so");
 	config.harbor = optint("harbor", 1);
 	config.bootstrap = optstring("bootstrap","snlua bootstrap");

@@ -3,6 +3,7 @@
 
 struct skynet_config {
 	int thread;
+	int exlusive;
 	int harbor;
 	int profile;
 	const char * daemon;

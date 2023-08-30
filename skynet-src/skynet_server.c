@@ -55,6 +55,7 @@ struct skynet_context {
 	bool init;
 	bool endless;
 	bool profile;
+	bool exlusively;
 
 	CHECKCALLING_DECL
 };
@@ -121,7 +122,7 @@ drop_message(struct skynet_message *msg, void *ud) {
 }
 
 struct skynet_context * 
-skynet_context_new(const char * name, const char *param) {
+skynet_context_new(const char * name, int exlusively, const char *param) {
 	struct skynet_module * mod = skynet_module_query(name);
 
 	if (mod == NULL)
@@ -130,6 +131,7 @@ skynet_context_new(const char * name, const char *param) {
 	void *inst = skynet_module_instance_create(mod);
 	if (inst == NULL)
 		return NULL;
+
 	struct skynet_context * ctx = skynet_malloc(sizeof(*ctx));
 	CHECKCALLING_INIT(ctx)
 
@@ -143,6 +145,7 @@ skynet_context_new(const char * name, const char *param) {
 
 	ctx->init = false;
 	ctx->endless = false;
+	ctx->exlusively = exlusively >0 ? true: false;
 
 	ctx->cpu_cost = 0;
 	ctx->cpu_start = 0;
@@ -151,7 +154,7 @@ skynet_context_new(const char * name, const char *param) {
 	// Should set to 0 first to avoid skynet_handle_retireall get an uninitialized handle
 	ctx->handle = 0;	
 	ctx->handle = skynet_handle_register(ctx);
-	struct message_queue * queue = ctx->queue = skynet_mq_create(ctx->handle);
+	struct message_queue * queue = ctx->queue = skynet_mq_create(ctx->handle, ctx->exlusively);
 	// init function maybe use ctx->handle, so it must init at last
 	context_inc();
 
@@ -294,9 +297,9 @@ skynet_context_dispatchall(struct skynet_context * ctx) {
 }
 
 struct message_queue * 
-skynet_context_message_dispatch(struct skynet_monitor *sm, struct message_queue *q, int weight) {
+skynet_context_message_dispatch(struct skynet_monitor *sm, struct message_queue *q, int weight, bool exlusively) {
 	if (q == NULL) {
-		q = skynet_globalmq_pop();
+		q = skynet_globalmq_pop(exlusively);
 		if (q==NULL)
 			return NULL;
 	}
@@ -307,7 +310,7 @@ skynet_context_message_dispatch(struct skynet_monitor *sm, struct message_queue 
 	if (ctx == NULL) {
 		struct drop_t d = { handle };
 		skynet_mq_release(q, drop_message, &d);
-		return skynet_globalmq_pop();
+		return skynet_globalmq_pop(exlusively);
 	}
 
 	int i,n=1;
@@ -316,7 +319,7 @@ skynet_context_message_dispatch(struct skynet_monitor *sm, struct message_queue 
 	for (i=0;i<n;i++) {
 		if (skynet_mq_pop(q,&msg)) {
 			skynet_context_release(ctx);
-			return skynet_globalmq_pop();
+			return skynet_globalmq_pop(exlusively);
 		} else if (i==0 && weight >= 0) {
 			n = skynet_mq_length(q);
 			n >>= weight;
@@ -338,7 +341,7 @@ skynet_context_message_dispatch(struct skynet_monitor *sm, struct message_queue 
 	}
 
 	assert(q == ctx->queue);
-	struct message_queue *nq = skynet_globalmq_pop();
+	struct message_queue *nq = skynet_globalmq_pop(exlusively);
 	if (nq) {
 		// If global mq is not empty , push q back, and return next queue (nq)
 		// Else (global mq is empty or block, don't push q back, and return q again (for next dispatch)
@@ -494,11 +497,14 @@ cmd_launch(struct skynet_context * context, const char * param) {
 #else
 	char tmp[sz+1];
 #endif
-	strcpy(tmp,param);
-	char * args = tmp;
-	char * mod = strsep(&args, " \t\r\n");
-	args = strsep(&args, "\r\n");
-	struct skynet_context * inst = skynet_context_new(mod,args);
+	strcpy(tmp, param);
+
+	char * ptr = tmp;
+	char * mod = strsep(&ptr, " \t\r\n");
+	char * exlusively = strsep(&ptr, " ");
+	char *args = strsep(&ptr, "\r\n");
+	
+	struct skynet_context * inst = skynet_context_new(mod, atoi(exlusively) ,args);
 	if (inst == NULL) {
 		return NULL;
 	} else {

@@ -21,6 +21,7 @@
 struct message_queue {
 	struct spinlock lock;
 	uint32_t handle;
+	bool exlusively;
 	int cap;
 	int head;
 	int tail;
@@ -38,12 +39,11 @@ struct global_queue {
 	struct spinlock lock;
 };
 
-static struct global_queue *Q = NULL;
+static struct global_queue *Worker = NULL;
+static struct global_queue *Exlusiver = NULL;
 
-void 
-skynet_globalmq_push(struct message_queue * queue) {
-	struct global_queue *q= Q;
-
+void
+skynet_globalmq_push_queue(struct global_queue *q, struct message_queue * queue) {
 	SPIN_LOCK(q)
 	assert(queue->next == NULL);
 	if(q->tail) {
@@ -55,10 +55,17 @@ skynet_globalmq_push(struct message_queue * queue) {
 	SPIN_UNLOCK(q)
 }
 
-struct message_queue * 
-skynet_globalmq_pop() {
-	struct global_queue *q = Q;
+void 
+skynet_globalmq_push(struct message_queue * queue) {
+	if (queue->exlusively) {
+		skynet_globalmq_push_queue(Exlusiver, queue);
+	} else {
+		skynet_globalmq_push_queue(Worker, queue);
+	}
+}
 
+struct message_queue*
+skynet_globalmq_pop_queue(struct global_queue *q) {
 	SPIN_LOCK(q)
 	struct message_queue *mq = q->head;
 	if(mq) {
@@ -75,9 +82,19 @@ skynet_globalmq_pop() {
 }
 
 struct message_queue * 
-skynet_mq_create(uint32_t handle) {
+skynet_globalmq_pop(bool exlusively) {
+	if( exlusively ) {
+		return skynet_globalmq_pop_queue(Exlusiver);
+	} else {
+		return skynet_globalmq_pop_queue(Worker);
+	}
+}
+
+struct message_queue * 
+skynet_mq_create(uint32_t handle, bool exlusively) {
 	struct message_queue *q = skynet_malloc(sizeof(*q));
 	q->handle = handle;
+	q->exlusively = exlusively;
 	q->cap = DEFAULT_QUEUE_SIZE;
 	q->head = 0;
 	q->tail = 0;
@@ -208,12 +225,19 @@ skynet_mq_push(struct message_queue *q, struct skynet_message *message) {
 	SPIN_UNLOCK(q)
 }
 
+struct global_queue *
+skynet_globalmq_create() {
+	struct global_queue *w = skynet_malloc(sizeof(*w));
+	memset(w, 0, sizeof(*w));
+	SPIN_INIT(w);
+	return w;
+}
+
 void 
 skynet_mq_init() {
-	struct global_queue *q = skynet_malloc(sizeof(*q));
-	memset(q,0,sizeof(*q));
-	SPIN_INIT(q);
-	Q=q;
+	Worker = skynet_globalmq_create();
+
+	Exlusiver = skynet_globalmq_create();
 }
 
 void 

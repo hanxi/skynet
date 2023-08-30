@@ -32,6 +32,7 @@ struct worker_parm {
 	struct monitor *m;
 	int id;
 	int weight;
+	bool exlusively;
 };
 
 static volatile int SIG = 0;
@@ -156,12 +157,13 @@ thread_worker(void *p) {
 	struct worker_parm *wp = p;
 	int id = wp->id;
 	int weight = wp->weight;
+	bool exlusively = wp->exlusively;
 	struct monitor *m = wp->m;
 	struct skynet_monitor *sm = m->m[id];
 	skynet_initthread(THREAD_WORKER);
 	struct message_queue * q = NULL;
 	while (!m->quit) {
-		q = skynet_context_message_dispatch(sm, q, weight);
+		q = skynet_context_message_dispatch(sm, q, weight, exlusively);
 		if (q == NULL) {
 			if (mtx_lock(&m->mutex) == 0) {
 				++ m->sleep;
@@ -181,7 +183,7 @@ thread_worker(void *p) {
 }
 
 static void
-start(int thread) {
+start(int thread, int exlusive) {
 
 #ifdef _MSC_VER
 	thrd_t* pid = (thrd_t*)skynet_malloc(((size_t)thread+3)*sizeof(*pid));
@@ -229,6 +231,13 @@ start(int thread) {
 	for (i=0;i<thread;i++) {
 		wp[i].m = m;
 		wp[i].id = i;
+
+		wp[i].exlusively = false;
+		if(exlusive >0) {
+			wp[i].exlusively = true;
+			exlusive--;
+		}
+
 		if (i < sizeof(weight)/sizeof(weight[0])) {
 			wp[i].weight= weight[i];
 		} else {
@@ -275,7 +284,7 @@ bootstrap(struct skynet_context * logger, const char * cmdline) {
 		args[0] = '\0';
 	}
 	
-	struct skynet_context *ctx = skynet_context_new(name, args);
+	struct skynet_context *ctx = skynet_context_new(name, 0, args);
 
 #ifdef _MSC_VER
 	skynet_free(name);
@@ -311,7 +320,7 @@ skynet_start(struct skynet_config * config) {
 	skynet_socket_init();
 	skynet_profile_enable(config->profile);
 
-	struct skynet_context *ctx = skynet_context_new(config->logservice, config->logger);
+	struct skynet_context *ctx = skynet_context_new(config->logservice, 0, config->logger);
 	if (ctx == NULL) {
 		fprintf(stderr, "Can't launch %s service\n", config->logservice);
 		exit(1);
@@ -321,7 +330,7 @@ skynet_start(struct skynet_config * config) {
 
 	bootstrap(ctx, config->bootstrap);
 
-	start(config->thread);
+	start(config->thread, config->exlusive);
 
 	// harbor_exit may call socket send, so it should exit before socket_free
 	skynet_harbor_exit();

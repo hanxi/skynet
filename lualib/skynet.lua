@@ -867,6 +867,10 @@ function skynet.newservice(name, ...)
 	return skynet.call(".launcher", "lua" , "LAUNCH", "snlua", name, ...)
 end
 
+function skynet.newexlusive(name, ...)
+	return skynet.call(".launcher", "lua" , "EXLUSIVE", "snlua", name, ...)
+end
+
 function skynet.uniqueservice(global, ...)
 	if global == true then
 		return assert(skynet.call(".service", "lua", "GLAUNCH", ...))

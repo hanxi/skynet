@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 struct skynet_message {
 	uint32_t source;
@@ -18,9 +19,9 @@ struct skynet_message {
 struct message_queue;
 
 void skynet_globalmq_push(struct message_queue * queue);
-struct message_queue * skynet_globalmq_pop(void);
+struct message_queue * skynet_globalmq_pop(bool exlusively);
 
-struct message_queue * skynet_mq_create(uint32_t handle);
+struct message_queue * skynet_mq_create(uint32_t handle, bool exlusively);
 void skynet_mq_mark_release(struct message_queue *q);
 
 typedef void (*message_drop)(struct skynet_message *, void *);

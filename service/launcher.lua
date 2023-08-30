@@ -8,9 +8,6 @@ local command = {}
 local instance = {} -- for confirm (function command.LAUNCH / command.ERROR / command.LAUNCHOK)
 local launch_session = {} -- for command.QUERY, service_address -> session
 
-local function handle_to_address(handle)
-	return tonumber("0x" .. string.sub(handle , 2))
-end
 
 local NORET = {}
 
@@ -70,7 +67,7 @@ function command.MEM(addr, ti)
 end
 
 function command.GC(addr, ti)
-	for k,v in pairs(services) do
+	for k in pairs(services) do
 		skynet.send(k,"debug","GC")
 	end
 	return command.MEM(addr, ti)
@@ -90,9 +87,9 @@ function command.REMOVE(_, handle, kill)
 	return NORET
 end
 
-local function launch_service(service, ...)
+local function launch_service(service, exlusively, ...)
 	local param = table.concat({...}, " ")
-	local inst = skynet.launch(service, param)
+	local inst = skynet.launch(service, exlusively, param)
 	local session = skynet.context()
 	local response = skynet.response()
 	if inst then
@@ -107,12 +104,17 @@ local function launch_service(service, ...)
 end
 
 function command.LAUNCH(_, service, ...)
-	launch_service(service, ...)
+	launch_service(service, 0, ...)
+	return NORET
+end
+
+function command.EXLUSIVE(_, service, ...)
+	launch_service(service, 1, ...)
 	return NORET
 end
 
 function command.LOGLAUNCH(_, service, ...)
-	local inst = launch_service(service, ...)
+	local inst = launch_service(service, 0, ...)
 	if inst then
 		core.command("LOGON", skynet.address(inst))
 	end

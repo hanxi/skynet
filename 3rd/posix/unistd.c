@@ -127,15 +127,6 @@ int pipe(int fd[2]) {
     socket_keepalive(client_fd);
 
     return 0;
-
-    ////HANDLE hReadPipe, hWritePipe;
-    // SECURITY_ATTRIBUTES sa;
-    // sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-    // sa.lpSecurityDescriptor = NULL;
-    // sa.bInheritHandle = TRUE;
-    // if(CreatePipe(&fd[0],&fd[1],&sa,0))
-    //	return 0;
-    // return -1;
 }
 
 int write(int fd, const void* ptr, size_t sz) {
@@ -188,12 +179,9 @@ int read(int fd, void* buffer, size_t sz) {
             return 0;
         return -1;
     }
-    else
+    else{
         return bytesRecv;
-    // DWORD read = 0;
-    // if(ReadFile(fd, buffer, sz, &read, NULL) == TRUE)
-    //	return read;
-    // return -1;
+    }
 }
 
 int close(int fd) {

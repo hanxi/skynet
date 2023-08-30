@@ -239,7 +239,7 @@ skynet.start(function()
 	end)
 	skynet.dispatch("text", monitor_harbor(master_fd))
 
-	harbor_service = assert(skynet.launch("harbor", harbor_id, skynet.self()))
+	harbor_service = assert(skynet.launch("harbor", 0, harbor_id, skynet.self()))
 
 	local hs_message = pack_package("H", harbor_id, slave_address)
 	socket.write(master_fd, hs_message)
@@ -254,7 +254,7 @@ skynet.start(function()
 			socketdriver.nodelay(fd)
 			if pcall(accept_slave,fd) then
 				local s = 0
-				for k,v in pairs(slaves) do
+				for _, _ in pairs(slaves) do
 					s = s + 1
 				end
 				if s >= n then

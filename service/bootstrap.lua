@@ -1,12 +1,11 @@
 local skynet = require "skynet"
-local harbor = require "skynet.harbor"
 local service = require "skynet.service"
 require "skynet.manager"	-- import skynet.launch, ...
 
 skynet.start(function()
 	local standalone = skynet.getenv "standalone"
 
-	local launcher = assert(skynet.launch("snlua","launcher"))
+	local launcher = assert(skynet.launch("snlua", 0, "launcher"))
 	skynet.name(".launcher", launcher)
 
 	local harbor_id = tonumber(skynet.getenv "harbor" or 0)
