@@ -10,3 +10,4 @@ EXPORTS
 	luaopen_skynet_core
 	luaopen_skynet_socketdriver
 	luaopen_skynet_stm
+	luaopen_skynet_vscdebugaux

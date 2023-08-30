@@ -56,6 +56,9 @@
     <ClCompile Include="..\..\lualib-src\lua-datasheet.c">
       <Filter>Source files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\lualib-src\lua-vscdebugaux.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lualib-src\lua-seri.h">

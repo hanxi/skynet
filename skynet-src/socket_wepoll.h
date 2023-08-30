@@ -3,8 +3,6 @@
 
 #include "skynet.h"
 
-// #pragma comment(lib, "ws2_32.lib")
-
 static bool sp_invalid(poll_fd efd) { return efd == 0; }
 
 static poll_fd sp_create() { return epoll_create(1024); }
