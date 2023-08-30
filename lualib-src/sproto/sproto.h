@@ -27,6 +27,12 @@ struct sproto_type;
 #define SPROTO_CB_NIL -2
 #define SPROTO_CB_NOARRAY -3
 
+#ifdef SPROTO_TABLE_POOL
+    #define SPROTO_NEWTABLE(L) {lua_getglobal(L,"SprotoPoolGet");lua_call(L,0,1);}
+#else
+    #define SPROTO_NEWTABLE(L) lua_newtable(L)
+#endif
+
 struct sproto * sproto_create(const void * proto, size_t sz);
 void sproto_release(struct sproto *);
 

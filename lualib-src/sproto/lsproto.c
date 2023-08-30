@@ -397,7 +397,7 @@ expand_buffer(lua_State *L, int osz, int nsz) {
 		luaL_error(L, "object is too large (>%d)", ENCODE_MAXSIZE);
 		return NULL;
 	}
-	output = lua_newuserdata(L, osz);
+	output = lua_newuserdatauv(L, osz, 0);
 	lua_replace(L, lua_upvalueindex(1));
 	lua_pushinteger(L, osz);
 	lua_replace(L, lua_upvalueindex(2));
@@ -471,7 +471,7 @@ decode(const struct sproto_arg *args) {
 		// It's array
 		if (args->tagname != self->array_tag) {
 			self->array_tag = args->tagname;
-			lua_newtable(L);
+			SPROTO_NEWTABLE(L);
 			lua_pushvalue(L, -1);
 			lua_setfield(L, self->result_index, args->tagname);
 			if (self->array_index) {
@@ -521,12 +521,12 @@ decode(const struct sproto_arg *args) {
 		sub.L = L;
 		if (map) {
 			if (!self->map_entry) {
-				lua_newtable(L);
+				SPROTO_NEWTABLE(L);
 				self->map_entry = lua_gettop(L);
 			}
 			sub.result_index = self->map_entry;
 		} else {
-			lua_newtable(L);
+			SPROTO_NEWTABLE(L);
 			sub.result_index = lua_gettop(L);
 		}
 		sub.deep = self->deep + 1;
@@ -631,7 +631,7 @@ ldecode(lua_State *L) {
 	sz = 0;
 	buffer = getbuffer(L, 2, &sz);
 	if (!lua_istable(L, -1)) {
-		lua_newtable(L);
+		SPROTO_NEWTABLE(L);
 	}
 	self.L = L;
 	self.result_index = lua_gettop(L);
@@ -708,7 +708,7 @@ lunpack(lua_State *L) {
 
 static void
 pushfunction_withbuffer(lua_State *L, const char * name, lua_CFunction func) {
-	lua_newuserdata(L, ENCODE_BUFFERSIZE);
+	lua_newuserdatauv(L, ENCODE_BUFFERSIZE, 0);
 	lua_pushinteger(L, ENCODE_BUFFERSIZE);
 	lua_pushcclosure(L, func, 2);
 	lua_setfield(L, -2, name);
@@ -834,7 +834,7 @@ encode_default(const struct sproto_arg *args) {
 	lua_State *L = args->ud;
 	lua_pushstring(L, args->tagname);
 	if (args->index > 0) {
-		lua_newtable(L);
+		SPROTO_NEWTABLE(L);
 		push_default(args, 1);
 		lua_setfield(L, -2, "__array");
 		lua_rawset(L, -3);
@@ -859,19 +859,19 @@ ldefault(lua_State *L) {
 	if (st == NULL) {
 		return luaL_argerror(L, 1, "Need a sproto_type object");
 	}
-	lua_newtable(L);
+	SPROTO_NEWTABLE(L);
 	ret = sproto_encode(st, dummy, sizeof(dummy), encode_default, L);
 	if (ret<0) {
 		// try again
 		int sz = sizeof(dummy) * 2;
-		void * tmp = lua_newuserdata(L, sz);
+		void * tmp = lua_newuserdatauv(L, sz, 0);
 		lua_insert(L, -2);
 		for (;;) {
 			ret = sproto_encode(st, tmp, sz, encode_default, L);
 			if (ret >= 0)
 				break;
 			sz *= 2;
-			tmp = lua_newuserdata(L, sz);
+			tmp = lua_newuserdatauv(L, sz, 0);
 			lua_replace(L, -3);
 		}
 	}
