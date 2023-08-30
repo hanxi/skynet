@@ -13,6 +13,9 @@ local ip = (arg.n == 2 and arg[1] or "127.0.0.1")
 local port = tonumber(arg[arg.n])
 local TIMEOUT = 300 -- 3 sec
 
+local last_mem = {}
+local last_cmdline = ""
+
 local COMMAND = {}
 local COMMANDX = {}
 
@@ -57,36 +60,45 @@ local function split_cmdline(cmdline)
 end
 
 local function docmd(cmdline, print, fd)
-	local split = split_cmdline(cmdline)
-	local command = split[1]
-	local cmd = COMMAND[command]
-	local ok, list
-	if cmd then
-		ok, list = pcall(cmd, table.unpack(split,2))
-	else
-		cmd = COMMANDX[command]
-		if cmd then
-			split.fd = fd
-			split[1] = cmdline
-			ok, list = pcall(cmd, split)
-		else
-			print("Invalid command, type help for command list")
-		end
-	end
+    local split = split_cmdline(cmdline)
+    local command = split[1]
+    local cmd = COMMAND[command]
+    local ok, list
+    if cmd then
+        if command == "." and last_cmdline ~= "." then
+            ok, list = pcall(cmd, print, fd, table.unpack(split,2))
+        else
+            ok, list = pcall(cmd, table.unpack(split,2))
+        end
+    else
+        cmd = COMMANDX[command]
+        if cmd then
+            split.fd = fd
+            split[1] = cmdline
+            ok, list = pcall(cmd, split)
+        else
+            print("Invalid command, type help for command list")
+        end
+    end
 
-	if ok then
-		if list then
-			if type(list) == "string" then
-				print(list)
-			else
-				dump_list(print, list)
-			end
-		end
-		print("<CMD OK>")
-	else
-		print(list)
-		print("<CMD Error>")
-	end
+    if ok then
+        if list then
+            if type(list) == "string" then
+                print(list)
+            else
+                dump_list(print, list)
+            end
+        end
+
+        if command ~= "." then
+            last_cmdline = cmdline
+        end
+
+        print(string.format("<CMD:%s OK>", cmdline))
+    else
+        print(list)
+        print(string.format("<CMD:%s Error>", cmdline))
+    end
 end
 
 local function console_main_loop(stdin, print, addr)
@@ -166,6 +178,8 @@ function COMMAND.help()
 		dumpheap = "dumpheap : dump heap profilling",
 		killtask = "killtask address threadname : threadname listed by task",
 		dbgcmd = "run address debug command",
+		diff_mem = "diff mem",
+		["."] = "redo last cmd]"
 	}
 end
 
@@ -240,11 +254,147 @@ local function timeout(ti)
 end
 
 function COMMAND.stat(ti)
-	return skynet.call(".launcher", "lua", "STAT", timeout(ti))
+    local tbl = skynet.call(".launcher", "lua", "STAT", timeout(ti))
+
+    local name_tbl = skynet.call(".launcher", "lua", "LIST")
+    local list = {}
+    for k, v in pairs(tbl) do
+        list[#list+1] = {
+            addr = k,
+            name = name_tbl[k] or "unknown",
+            cpu = v.cpu,
+            message = v.message,
+            mqlen = v.mqlen,
+            task = v.task,
+        }
+    end
+
+    table.sort(list, function (a, b)
+        if a.cpu ~= b.cpu then
+            return a.cpu < b.cpu
+        else
+            if a.message ~= b.message then
+                return a.message < b.message
+            else
+                if a.mqlen ~= b.mqlen then
+                    return a.mqlen < b.mqlen
+                else
+                    if a.task ~= b.task then
+                        return a.task < b.task
+                    end
+                end
+            end
+        end
+
+        return false
+    end)
+
+	local s = ""
+    for _, v in pairs(list) do
+        s = string.format("%s %s cpu:%-10s message:%-10s mqlen:%-5s task:%-5s %-10s \n", s, v.addr, v.cpu, v.message, v.mqlen, v.task, v.name)
+    end
+
+	return s
 end
 
 function COMMAND.mem(ti)
-	return skynet.call(".launcher", "lua", "MEM", timeout(ti))
+    local tbl = skynet.call(".launcher", "lua", "MEM", timeout(ti))
+    local cur_mem = {}
+    for k, v in pairs(tbl) do
+        local idx = string.find(v, "Kb")
+        local mem = tonumber(string.sub(v, 1, idx - 2))
+        cur_mem[k] = mem
+    end
+
+    local total_lua_mem = 0
+    local list = {}
+    for k, v in pairs(cur_mem) do
+        list[#list+1] = {addr = k, mem = v}
+        total_lua_mem = total_lua_mem + v
+    end
+
+    table.sort(list, function (a, b)
+        local aval = a.mem
+        local bval = b.mem
+
+        if aval ~= nil and bval ~= nil and aval ~= bval then
+            return aval < bval
+        end
+
+        return false
+    end)
+   
+    local s = ""
+    local name_tbl = skynet.call(".launcher", "lua", "LIST")
+    for _, v in pairs(list) do
+        s = string.format("%s %s%10s Kb %s\n", s, v.addr, v.mem, name_tbl[v.addr] or "unknown")
+    end
+    s = string.format("%s total_lua_mem: %s Kb\n", s, total_lua_mem)
+
+    return s
+end
+
+function COMMAND.diff_mem(ti)
+    if last_mem == nil then
+        last_mem = {}
+    end
+
+    local tbl = skynet.call(".launcher", "lua", "MEM", timeout(ti))
+    local cur_mem = {}
+    for k, v in pairs(tbl) do
+        local idx = string.find(v, "Kb")
+        local mem = tonumber(string.sub(v, 1, idx - 2))
+        cur_mem[k] = mem
+    end
+
+    local list = {}
+    for k, v in pairs(cur_mem) do
+        if last_mem[k] == nil then
+            -- 新增加的内存
+            list[#list+1] = {addr = k, delta_mem = v, flag = "new"}
+        else
+            -- 变化的内存
+            list[#list+1] = {addr = k, delta_mem = v - last_mem[k], flag = "change"}
+        end
+		last_mem[k] = v
+    end
+
+    -- 上次有的内存，本次tbl没有
+    for k, v in pairs(last_mem) do
+        if tbl[k] == nil then
+            list[#list+1] = {addr = k, delta_mem = -v, flag = "destroy"}
+        end
+    end
+
+    table.sort(list, function (a, b)
+        if a.delta_mem ~= b.delta_mem then
+            return a.delta_mem < b.delta_mem
+        end
+
+        return false
+    end)
+
+    local name_tbl = skynet.call(".launcher", "lua", "LIST")
+    local s = ""
+    for _, v in pairs(list) do
+        s = string.format("%s %s %f Kb %s %s \n", s, v.addr, v.delta_mem / 1024, v.flag, name_tbl[v.addr] or "unknown")
+    end
+
+    return s
+end
+
+COMMAND["."] = function (print, fd, count, delay)
+    count = count or 1
+    delay = delay or 1
+    if last_cmdline ~= "." then
+        skynet.fork(function ()
+            for _ = 1, count do
+                docmd(last_cmdline, print, fd)
+                skynet.sleep(100 * delay)
+            end
+
+        end)
+    end
 end
 
 function COMMAND.kill(address)
@@ -302,7 +452,7 @@ function COMMANDX.debug(cmd)
 	local term_co = coroutine.running()
 	local function forward_cmd()
 		repeat
-			-- notice :  It's a bad practice to call socket.readline from two threads (this one and console_main_loop), be careful.
+			-- notice: It's a bad practice to call socket.readline from two threads (this one and console_main_loop), be careful.
 			skynet.call(agent, "lua", "ping")	-- detect agent alive, if agent exit, raise error
 			local cmdline = socket.readline(cmd.fd, "\n")
 			cmdline = cmdline and cmdline:gsub("(.*)\r$", "%1")
@@ -353,15 +503,34 @@ function COMMAND.signal(address, sig)
 end
 
 function COMMAND.cmem()
-	local info = memory.info()
-	local tmp = {}
-	for k,v in pairs(info) do
-		tmp[skynet.address(k)] = v
-	end
-	tmp.total = memory.total()
-	tmp.block = memory.block()
+    local info = memory.info()
+	local name_tbl = skynet.call(".launcher", "lua", "LIST")
 
-	return tmp
+	local list = {}
+	for k, v in pairs(info) do
+		local addr = skynet.address(k)
+		list[#list+1] = {addr = addr, name = name_tbl[addr] or "unknown", mem = v / 1024}
+	end
+
+	-- 按内存小到大排序
+	table.sort(list, function(a, b)
+		local a_mem = a.mem
+		local b_mem = b.mem
+		if a_mem ~= b_mem then
+			return a_mem < b_mem
+		end
+
+		return false
+	end)
+
+	local s = ""
+	for _, v in ipairs(list) do
+		s = string.format("%s %s\t%10.2f Kb\t%s\n", s, v.addr, v.mem, v.name)
+	end
+	s = string.format("%s total: %.2f Kb\n", s, memory.total() / 1024)
+	s = string.format("%s block: %.2f Kb\n", s, memory.block() / 1024)
+
+	return s
 end
 
 function COMMAND.jmem()

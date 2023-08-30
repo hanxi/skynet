@@ -177,7 +177,31 @@ local function sharetable_service()
 			end
 		end
 
-		return info
+        local list = {}
+        for k, v in pairs(info) do
+            list[#list+1] = {
+                filename = k,
+                current = v.current,
+                history = v.history,
+                size = v.size,
+            }
+        end
+
+        table.sort(list, function (a, b)
+            if a.size ~= b.size then
+                return a.size < b.size
+            end
+
+            return false
+        end)
+
+        local str = ""
+        for _, v in pairs(list) do
+            str = string.format("%s\n %-10s size:%.2f kb current:%s history:%s",
+                str, v.filename, v.size / 1024, v.current, v.history)
+        end
+
+		return str
 	end)
 
 end
@@ -495,4 +519,3 @@ function sharetable.update(...)
 end
 
 return sharetable
-
