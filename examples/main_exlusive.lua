@@ -5,9 +5,6 @@ local max_client = 64
 skynet.start(function()
     skynet.error("Server start")
     skynet.uniqueservice("protoloader")
-    if not skynet.getenv "daemon" then
-        skynet.newexlusive("console")
-    end
     skynet.newexlusive("debug_console", 8000)
     skynet.newexlusive("simpledb")
     local watchdog = skynet.newexlusive("watchdog")

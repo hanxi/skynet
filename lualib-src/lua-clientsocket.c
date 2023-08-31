@@ -39,13 +39,8 @@ lconnect(lua_State *L) {
 		return luaL_error(L, "Connect %s %d failed", addr, port);
 	}
 
-#ifdef _MSC_VER
-	u_long iMode = 1;
-	int iResult = ioctlsocket(fd, FIONBIO, &iMode);
-#else
 	int flag = fcntl(fd, F_GETFL, 0);
 	fcntl(fd, F_SETFL, flag | O_NONBLOCK);
-#endif
 
 	lua_pushinteger(L, fd);
 

@@ -2,6 +2,8 @@
 #define poll_socket_wepoll_h
 
 #include "skynet.h"
+#include <unistd.h>
+
 
 static bool sp_invalid(poll_fd efd) { return efd == 0; }
 
@@ -52,12 +54,12 @@ static int sp_wait(poll_fd efd, struct event *e, int max) {
 }
 
 static void sp_nonblocking(SOCKET sock) {
-  // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-ioctlsocket
-  u_long iMode = 1;
-  int iResult = ioctlsocket(sock, FIONBIO, &iMode);
-  if (iResult != NO_ERROR) {
-    printf("ioctlsocket failed with error: %d\n", iResult);
-  }
+	int flag = fcntl(sock, F_GETFL, 0);
+	if ( -1 == flag ) {
+		return;
+	}
+
+	fcntl(sock, F_SETFL, flag | O_NONBLOCK);
 }
 
 #endif

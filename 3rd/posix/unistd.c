@@ -39,6 +39,14 @@ void usleep(size_t us) {
 
 void sleep(size_t ms) { Sleep(ms); }
 
+struct tm *localtime_r(const time_t *timer, struct tm *buf) {
+	struct tm *tm = localtime(timer);
+	if (!tm)
+		return NULL;
+	memcpy(buf, tm, sizeof(*tm));
+	return buf;
+}
+
 int clock_gettime(int what, struct timespec* ti) {
 
     switch (what) {
@@ -66,13 +74,25 @@ int flock(int fd, int flag) {
     return 3;
 }
 
+int fcntl(int fd, int cmd, long arg)
+{
+	if (cmd == F_GETFL)
+		return 0;
+
+	if (cmd == F_SETFL && arg == O_NONBLOCK) {
+		u_long ulOption = 1;
+		ioctlsocket(fd, FIONBIO, &ulOption);
+	}
+
+	return 1;
+}
+
 void sigfillset(int* flag) {
     // Not implemented
 }
 
 void sigaction(int flag, struct sigaction* action, int param) {
     // Not implemented
-    //__asm int 3;
 }
 
 static void socket_keepalive(int fd) {
@@ -140,33 +160,9 @@ int write(int fd, const void* ptr, size_t sz) {
         return -1;
     else
         return bytesSent;
-    // DWORD writed = 0;
-    // if(WriteFile(fd, ptr, sz, &writed, NULL) == TRUE)
-    //	return writed;
-    // return -1;
 }
 
 int read(int fd, void* buffer, size_t sz) {
-
-    // read console input
-    if (fd == 0) {
-        char* buf = (char*)buffer;
-        while (buf - (char*)buffer < sz) {
-
-            if (!_kbhit())
-                break;
-            char ch = _getch();
-            *buf++ = ch;
-            _putch(ch);
-            if (ch == '\r') {
-                if (buf - (char*)buffer >= sz)
-                    break;
-                *buf++ = '\n';
-                _putch('\n');
-            }
-        }
-        return buf - (char*)buffer;
-    }
 
     WSABUF vecs[1];
     vecs[0].buf = buffer;
@@ -191,7 +187,6 @@ int close(int fd) {
 
 int daemon(int a, int b) {
     // Not implemented
-    //__asm int 3;
     return 0;
 }
 

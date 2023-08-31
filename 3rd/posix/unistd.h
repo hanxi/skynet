@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+// #define HAVE_STRUCT_TIMESPEC
+
 #define random rand
 #define srandom srand
 #define snprintf _snprintf
@@ -14,6 +16,8 @@ int kill(pid_t pid, int exit_code);
 
 void usleep(size_t us);
 void sleep(size_t ms);
+
+struct tm *localtime_r(const time_t *timer, struct tm *buf);
 
 enum { CLOCK_THREAD_CPUTIME_ID, CLOCK_REALTIME, CLOCK_MONOTONIC };
 int clock_gettime(int what, struct timespec *ti);
@@ -32,6 +36,12 @@ void sigaction(int flag, struct sigaction *action, int param);
 
 int pipe(int fd[2]);
 int daemon(int a, int b);
+
+#define O_NONBLOCK 1
+#define F_SETFL 0
+#define F_GETFL 1
+
+int fcntl(int fd, int cmd, long arg);
 
 char *strsep(char **stringp, const char *delim);
 
