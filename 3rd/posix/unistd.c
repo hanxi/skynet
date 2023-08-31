@@ -39,7 +39,7 @@ void usleep(size_t us) {
 
 void sleep(size_t ms) { Sleep(ms); }
 
-struct tm *localtime_r(const time_t *timer, struct tm *buf) {
+struct tm * localtime_r(const time_t *timer, struct tm *buf) {
 	struct tm *tm = localtime(timer);
 	if (!tm)
 		return NULL;

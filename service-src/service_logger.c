@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 struct logger {
 	FILE * handle;
@@ -40,7 +41,11 @@ timestring(struct logger *inst, char tmp[SIZETIMEFMT]) {
 	time_t ti = now/100 + inst->starttime;
 
 	struct tm info;
-	(void)localtime_r(&ti,&info);
+#ifdef _MSC_VER
+	(void)_localtime64(&ti, &info);
+#else
+	(void)localtime_r(&ti, &info);
+#endif
 	strftime(tmp, SIZETIMEFMT, "%d/%m/%y %H:%M:%S", &info);
 	return now % 100;
 }

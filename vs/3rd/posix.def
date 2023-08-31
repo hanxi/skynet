@@ -9,6 +9,8 @@ EXPORTS
 	usleep
 	sleep
 	clock_gettime
+	localtime_r
+	fcntl
 	flock
 	sigaction
 	sigfillset
