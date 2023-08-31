@@ -14,8 +14,6 @@ static LONGLONG get_cpu_freq() {
     return freq.QuadPart;
 }
 
-// pid_t getpid() { return GetCurrentProcess(); }
-
 int kill(pid_t pid, int exit_code) { return TerminateProcess(pid, exit_code); }
 
 #define NANOSEC 1000000000
@@ -38,14 +36,6 @@ void usleep(size_t us) {
 }
 
 void sleep(size_t ms) { Sleep(ms); }
-
-struct tm * localtime_r(const time_t *timer, struct tm *buf) {
-	struct tm *tm = localtime(timer);
-	if (!tm)
-		return NULL;
-	memcpy(buf, tm, sizeof(*tm));
-	return buf;
-}
 
 int clock_gettime(int what, struct timespec* ti) {
 

@@ -3,13 +3,11 @@ EXPORTS
 	dlerror
 	dlsym
 
-	getpid
 	kill
 	gethostname
 	usleep
 	sleep
 	clock_gettime
-	localtime_r
 	fcntl
 	flock
 	sigaction
