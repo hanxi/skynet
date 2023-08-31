@@ -32,6 +32,7 @@
     <ProjectGuid>{CC7E5A77-BBA5-4939-96BB-D4BCEB756128}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>lua</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -62,6 +63,7 @@
     <IntDir>..\output\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)..\luaclib\</OutDir>
     <TargetExt>.so</TargetExt>
+    <TargetName>cjson</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

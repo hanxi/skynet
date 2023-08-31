@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+local lfs = require "lfs"
 
 local max_client = 64
 

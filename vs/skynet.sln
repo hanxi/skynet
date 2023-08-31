@@ -65,6 +65,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lua-cjson", "3rd\lua-cjson.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pb", "3rd\pb.vcxproj", "{2D991A4F-C1FA-46D9-8304-5A2836ED45D5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "luafilesystem", "3rd\luafilesystem.vcxproj", "{799580E1-69A5-4833-91C6-D61E7A62C5D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -131,6 +133,10 @@ Global
 		{2D991A4F-C1FA-46D9-8304-5A2836ED45D5}.Debug|Win32.Build.0 = Debug|Win32
 		{2D991A4F-C1FA-46D9-8304-5A2836ED45D5}.Release|Win32.ActiveCfg = Release|Win32
 		{2D991A4F-C1FA-46D9-8304-5A2836ED45D5}.Release|Win32.Build.0 = Release|Win32
+		{799580E1-69A5-4833-91C6-D61E7A62C5D5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{799580E1-69A5-4833-91C6-D61E7A62C5D5}.Debug|Win32.Build.0 = Debug|Win32
+		{799580E1-69A5-4833-91C6-D61E7A62C5D5}.Release|Win32.ActiveCfg = Release|Win32
+		{799580E1-69A5-4833-91C6-D61E7A62C5D5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -150,6 +156,7 @@ Global
 		{44F52237-AE31-499F-A74C-4E02B0FAD898} = {223656D9-5628-47EA-8BB2-38A10EA727B2}
 		{CC7E5A77-BBA5-4939-96BB-D4BCEB756128} = {223656D9-5628-47EA-8BB2-38A10EA727B2}
 		{2D991A4F-C1FA-46D9-8304-5A2836ED45D5} = {223656D9-5628-47EA-8BB2-38A10EA727B2}
+		{799580E1-69A5-4833-91C6-D61E7A62C5D5} = {223656D9-5628-47EA-8BB2-38A10EA727B2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C63C6C9D-E36F-47F8-A3AF-90A23B69F552}
