@@ -11,12 +11,11 @@
 *.dSYM
 .DS_Store
 .vscode
-.vs
 build
-*.sln
 *.exe
 *.dll
 *.pdb
 *.lib
 *.exp
 vs/output
+vs/.vs
