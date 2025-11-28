@@ -56,7 +56,9 @@ jobs:
           automake \
           libtool \
           git \
-          zip
+          zip \
+          ca-certificates \
+          curl
 
     - name: Install dependencies (macOS)
       if: matrix.platform == 'macosx'
@@ -78,12 +80,26 @@ jobs:
           automake \
           libtool \
           git \
-          zip
+          zip \
+          ca-certificates \
+          curl
+
+    - name: Update CA certificates (Debian containers)
+      if: matrix.container == 'debian:13'
+      run: |
+        update-ca-certificates
+
+    - name: Configure Git SSL (Debian containers)
+      if: matrix.container == 'debian:13'
+      run: |
+        git config --global http.sslverify true
+        git config --global http.sslcainfo /etc/ssl/certs/ca-certificates.crt
 
     - name: Checkout code
       uses: actions/checkout@v6
       with:
         submodules: recursive
+        fetch-depth: 1
 
     - name: Build ${{ matrix.platform }}
       run: |
