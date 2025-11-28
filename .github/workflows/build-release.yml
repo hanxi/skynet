@@ -58,7 +58,9 @@ jobs:
           git \
           zip \
           ca-certificates \
-          curl
+          curl \
+          libreadline-dev \
+          libedit-dev
 
     - name: Install dependencies (macOS)
       if: matrix.platform == 'macosx'
@@ -82,7 +84,9 @@ jobs:
           git \
           zip \
           ca-certificates \
-          curl
+          curl \
+          libreadline-dev \
+          libedit-dev
 
     - name: Update CA certificates (Debian containers)
       if: matrix.container == 'debian:13'
