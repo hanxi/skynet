@@ -117,15 +117,12 @@ jobs:
         mkdir -p build-output
         # Copy all files except .git and .github
         rsync -av --exclude='.git*' --exclude='.github' . build-output/
-        cd build-output
-        # Create the final zip with the desired name
-        zip -r ../${{ matrix.artifact }} .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.artifact }}
-        path: ${{ matrix.artifact }}
+        name: ${{ matrix.platform }}-build
+        path: build-output/
         retention-days: 30
 
   release:
@@ -143,7 +140,14 @@ jobs:
     - name: Prepare release assets
       run: |
         mkdir -p release-assets
-        find artifacts -name "*.zip" -exec cp {} release-assets/ \;
+        # Create zip files for each platform from the artifact directories
+        for platform in windows linux macosx freebsd; do
+          if [ -d "artifacts/${platform}-build" ]; then
+            cd "artifacts/${platform}-build"
+            zip -r "../../release-assets/skynet-${platform}.zip" .
+            cd ../..
+          fi
+        done
         ls -la release-assets/
 
     - name: Create Release
