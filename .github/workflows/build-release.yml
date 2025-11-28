@@ -40,11 +40,6 @@ jobs:
     container: ${{ matrix.container }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-      with:
-        submodules: recursive
-
     - name: Install dependencies (Debian - Windows/Linux)
       if: matrix.container == 'debian:13'
       run: |
@@ -84,6 +79,11 @@ jobs:
           libtool \
           git \
           zip
+
+    - name: Checkout code
+      uses: actions/checkout@v6
+      with:
+        submodules: recursive
 
     - name: Build ${{ matrix.platform }}
       run: |
