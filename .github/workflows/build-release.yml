@@ -115,13 +115,20 @@ jobs:
     - name: Prepare build files
       run: |
         mkdir -p build-output
-        # Copy all files except .git and .github
-        rsync -av --exclude='.git*' --exclude='.github' . build-output/
+        # Copy all files except .git and .github with ignore-errors flag
+    - name: Clean and recreate directory
+      run: |
+        rm -rf build-output/
+        mkdir -p build-output/
+
+    - name: Sync files to build-output excluding specific directories
+      run: |
+        rsync -av --ignore-errors --exclude='.git*' --exclude='.github' --exclude='build-output' . build-output/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.platform }}-build
+        name: ${{ matrix.artifact }}
         path: build-output/
         retention-days: 30
 
@@ -140,10 +147,14 @@ jobs:
     - name: Prepare release assets
       run: |
         mkdir -p release-assets
-        # Create zip files for each platform from the artifact directories
-        for platform in windows linux macosx freebsd; do
-          if [ -d "artifacts/${platform}-build" ]; then
-            cd "artifacts/${platform}-build"
+        # Copy zip files from artifact directories to release assets
+        for artifact in skynet-windows.zip skynet-linux.zip skynet-macosx.zip skynet-freebsd.zip; do
+          if [ -d "artifacts/${artifact}" ]; then
+            # The artifacts are already organized, just copy them
+            cp -r "artifacts/${artifact}/"* "release-assets/" 2>/dev/null || true
+            # Or if we want to create new zip files with consistent naming
+            platform=$(echo ${artifact} | sed 's/skynet-\(.*\)\.zip/\1/')
+            cd "artifacts/${artifact}"
             zip -r "../../release-assets/skynet-${platform}.zip" .
             cd ../..
           fi
